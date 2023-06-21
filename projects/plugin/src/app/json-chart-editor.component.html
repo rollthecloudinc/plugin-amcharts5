@@ -1,0 +1,10 @@
+<form [formGroup]="contentForm" (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <div class="content-inner">
+      <textarea formControlName="json" [cols]="cols" [rows]="rows"></textarea>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button type="submit" mat-raised-button color="primary" mat-dialog-close [disabled]="!contentForm.valid">Save</button>
+  </mat-dialog-actions>
+</form>

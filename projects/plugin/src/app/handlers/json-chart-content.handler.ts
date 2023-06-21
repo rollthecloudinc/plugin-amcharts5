@@ -4,7 +4,7 @@ import { AttributeValue } from '@rollthecloudinc/attributes';
 import { Observable, of } from 'rxjs';
 
 @Injectable()
-export class DownloadContentHandler implements ContentHandler {
+export class JsonChartContentHandler implements ContentHandler {
 
   constructor() { }
 

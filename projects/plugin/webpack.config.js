@@ -10,7 +10,7 @@ sharedMappings.register(
 
 module.exports = {
   output: {
-    uniqueName: "plugin",
+    uniqueName: "plugin_amcharts5",
     publicPath: "auto"
   },
   optimization: {
@@ -29,12 +29,12 @@ module.exports = {
       
       library: { type: "module" },
 
-      name: "plugin",
+      name: "plugin_amcharts5",
       filename: "remoteEntry.js",
       exposes: {
-        './DownloadModule': './projects/plugin/src/app/download.module.ts',
-        './Download': './projects/plugin/src/app/download.component.ts',
-        './Upload': './projects/plugin/src/app/upload.component.ts'
+        './JsonChartModule': './projects/plugin/src/app/json-chart.module.ts',
+        './JsonChartRender': './projects/plugin/src/app/json-chart-render.component.ts',
+        './JsonChartEditor': './projects/plugin/src/app/json-chart-editor.component.ts',
       },
 
       shared: share({
@@ -42,6 +42,13 @@ module.exports = {
         "@angular/common": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
         "@angular/common/http": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
         "@angular/router": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/cdk": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/material": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/platform-browser": { singleton: true, strictVersion: false, requiredVersion: 'auto' },
+        /*"@angular/material/dialog": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/material/legacy-dialog": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/cdk/portal": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/cdk/overlay": { singleton: true, strictVersion: true, requiredVersion: 'auto' },*/
 
         "@rollthecloudinc/utils": { singleton: true, strictVersion: true, requiredVersion: 'auto', eager: false },
         "@rollthecloudinc/attributes": { singleton: true, strictVersion: true, requiredVersion: 'auto', eager: false },

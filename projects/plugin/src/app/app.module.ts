@@ -1,17 +1,14 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
-import { DownloadComponent } from './download.component';
-import { UploadComponent } from './upload.component';
-import { DownloadModule } from './download.module';
+import { JsonChartModule } from './json-chart.module';
 @NgModule({
   imports: [
     BrowserModule,
-    DownloadModule
+    JsonChartModule
   ],
   declarations: [
-    AppComponent,
-    UploadComponent,
+    AppComponent
   ],
   bootstrap: [
       AppComponent
@@ -19,6 +16,6 @@ import { DownloadModule } from './download.module';
 })
 export class AppModule { 
   constructor() {
-    console.log('plugin app module');
+    console.log('amcharts5 plugin app module');
   }
 }
