@@ -1,153 +1,135 @@
-import { Component, ElementRef, OnInit, inject } from '@angular/core';
-import { ContentPluginManager } from '@rollthecloudinc/content';
+import { Component, Input, AfterContentInit, ElementRef, inject } from '@angular/core';
+import { AttributeValue } from '@rollthecloudinc/attributes';
+import { TokenizerService } from '@rollthecloudinc/token';
+import { InlineContext } from '@rollthecloudinc/context';
+import { BehaviorSubject, combineLatest, Observable, Subject } from 'rxjs';
+import { switchMap, map, filter, tap, debounceTime } from 'rxjs/operators';
 import * as am5 from "@amcharts/amcharts5/index";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import am5themes_Dark from "@amcharts/amcharts5/themes/Dark";
 import * as am5plugins_json from "@amcharts/amcharts5/plugins/json";
-
-const sampleJsonXYChart = {
-    refs: {
-      data: [
-        { date: 1652425200000, value: 92 },
-        { date: 1652511600000, value: 95 },
-        { date: 1652598000000, value: 100 },
-        { date: 1652684400000, value: 100 },
-        { date: 1652770800000, value: 96 },
-        { date: 1652857200000, value: 97 },
-        { date: 1652943600000, value: 94 },
-        { date: 1653030000000, value: 89 },
-        { date: 1653116400000, value: 89 },
-        { date: 1653202800000, value: 87 },
-        { date: 1653289200000, value: 84 },
-        { date: 1653375600000, value: 81 },
-        { date: 1653462000000, value: 85 },
-        { date: 1653548400000, value: 89 },
-        { date: 1653634800000, value: 86 },
-        { date: 1653721200000, value: 90 },
-        { date: 1653807600000, value: 93 },
-        { date: 1653894000000, value: 94 },
-        { date: 1653980400000, value: 94 },
-        { date: 1654066800000, value: 96 }
-      ],
-      xAxis: {
-        type: "DateAxis",
-        settings: {
-          maxDeviation: 0.5,
-          baseInterval: {
-            timeUnit: "day",
-            count: 1
-          },
-          renderer: {
-            type: "AxisRendererX",
-            settings: {
-              pan: "zoom"
-            }
-          },
-          tooltip: {
-            type: "Tooltip",
-          },
-        }
-      },
-      yAxis: {
-        type: "ValueAxis",
-        settings: {
-          maxDeviation: 1,
-          renderer: {
-            type: "AxisRendererY",
-            settings: {
-              pan: "zoom"
-            },
-          },
-        }
-      },
-    },
-    type: "XYChart",
-    settings: {
-      panX: false,
-      panY: false,
-      wheelX: "panX",
-      wheelY: "zoomX",
-      cursor: {
-        type: "XYCursor",
-        settings: {
-          behavior: "zoomX"
-        },
-        properties: {
-          lineY: {
-            settings: {
-              visible: false
-            },
-          },
-        },
-      },
-      scrollbarX: {
-        type: "Scrollbar",
-        settings: {
-          orientation: "horizontal"
-        }
-      },
-    },
-    properties: {
-      xAxes: [
-        "#xAxis",
-      ],
-      yAxes: [
-        "#yAxis",
-      ],
-      series: [{
-        type: "LineSeries",
-        settings: {
-          name: "Series",
-          xAxis: "#xAxis",
-          yAxis: "#yAxis",
-          valueYField: "value",
-          valueXField: "date",
-          tooltip: {
-            type: "Tooltip",
-            settings: {
-              labelText: "{valueX}: {valueY}"
-            }
-          },
-        },
-        properties: {
-          data: "#data"
-        }
-      }]
-    }
-  };
+import { JsonChart } from './models/json-chart.model';
+import { JsonChartContentHandler } from './handlers/json-chart-content.handler';
 
 @Component({
     selector: 'amcharts5-plugin-json-chart-render',
     template: ` `,
-    styles: [':host { height: 300px; display: block; }']
+    styles: [':host { height: 300px; display: block; }'],
+    providers: [
+      JsonChartContentHandler
+    ]
 })
 
-export class JsonChartRenderComponent implements OnInit {
-    private cpm = inject(ContentPluginManager);
-    private hostEl = inject(ElementRef);
-    ngOnInit() { 
-        var root = am5.Root.new(this.hostEl.nativeElement);
+export class JsonChartRenderComponent implements AfterContentInit {
 
-        // Set themes
-        // https://www.amcharts.com/docs/v5/concepts/themes/
-        root.setThemes([
-          am5themes_Animated.new(root),
-          am5themes_Dark.new(root)
-        ]);
-        
-        // Specify date fields, so that they are formatted accordingly in tooltips
-        // https://www.amcharts.com/docs/v5/concepts/formatters/data-placeholders/#Formatting_placeholders
-        root.dateFormatter.setAll({
-          dateFields: ["valueX"]
-        });
+  private hostEl = inject(ElementRef);
+  private handler = inject(JsonChartContentHandler);
+  private tokenizerService = inject(TokenizerService);
 
-        var parser = am5plugins_json.JsonParser.new(root);
-        
-        parser.parse(sampleJsonXYChart, { parent: root.container })
-            .then(chart => {
-                // This kicks in when config is parsed
-                (chart as any).series.getIndex(0).appear(1000);
-                (chart as any).appear(1000, 100);
-            });
+  @Input()
+  set settings(settings: Array<AttributeValue>) {
+    this.settings$.next(settings);
+  }
+
+  @Input()
+  contexts: Array<InlineContext> = [];
+
+  @Input()
+  tokens: Map<string, any>;
+
+  @Input()
+  set resolvedContext(resolvedContext: any) {
+    this.resolvedContext$.next(resolvedContext);
+  }
+
+  private afterContentInit$ = new Subject<void>();
+  private settings$ = new BehaviorSubject<Array<AttributeValue>>([]);
+  private jsonChart$ = new BehaviorSubject<JsonChart>(undefined);
+  private json$ = new BehaviorSubject<{}>({});
+  private resolvedContext$ = new BehaviorSubject<any>(undefined);
+  private root: am5.Root;
+
+  readonly settingsSub = combineLatest([
+    this.settings$,
+    this.resolvedContext$
+  ]).pipe(
+    switchMap(([settings, _]) => this.handler.toObject(settings)),
+    filter(jsonChart => !!jsonChart && jsonChart.json !== undefined && jsonChart.json !== ''),
+    switchMap(jsonChart => this.resolveContexts().pipe(
+      map<Map<string, any>, [JsonChart, Map<string, any> | undefined]>(tokens => [jsonChart, tokens])
+    )),
+  ).subscribe(([jsonChart, tokens]) => {
+    if(tokens !== undefined) {
+      this.tokens = tokens;
     }
+    this.jsonChart$.next(jsonChart);
+    // @todo: Probably be a better approach unserialize and rebuild by replacing tokens recursively.
+    const jsonString = this.replaceTokens(jsonChart.json);
+    const json = JSON.parse(jsonString);
+    this.json$.next(json);
+  });
+
+  readonly jsonSub = this.json$.pipe(
+    filter(json => !!json),
+    tap(json => this.renderChart({ json }))
+  ).subscribe();
+
+  ngAfterContentInit() {
+    this.afterContentInit$.next();
+    this.afterContentInit$.complete();
+  }
+
+  private replaceTokens(v: string): string {
+    if(this.tokens !== undefined) {
+      this.tokens.forEach((value, key) => {
+        v = v.split(`[${key}]`).join(`${value}`)
+      });
+    }
+    return v;
+  }
+
+  private resolveContexts(): Observable<undefined | Map<string, any>> {
+    return new Observable(obs => {
+      let tokens = new Map<string, any>();
+      if(this.resolvedContext$.value) {
+        for(const name in this.resolvedContext$.value) {
+          tokens = new Map<string, any>([ ...tokens, ...this.tokenizerService.generateGenericTokens(this.resolvedContext$.value[name], name === '_root' ? '' : name) ]);
+        }
+      }
+      obs.next(tokens);
+      obs.complete();
+    });
+  }
+
+  private renderChart({ json }: { json: {} }) {
+
+    if (this.root) {
+      this.root.dispose();
+    }
+
+    this.root = am5.Root.new(this.hostEl.nativeElement);
+
+    // Set themes
+    // https://www.amcharts.com/docs/v5/concepts/themes/
+    this.root.setThemes([
+      am5themes_Animated.new(this.root),
+      am5themes_Dark.new(this.root)
+    ]);
+    
+    // Specify date fields, so that they are formatted accordingly in tooltips
+    // https://www.amcharts.com/docs/v5/concepts/formatters/data-placeholders/#Formatting_placeholders
+    this.root.dateFormatter.setAll({
+      dateFields: ["valueX"]
+    });
+
+    var parser = am5plugins_json.JsonParser.new(this.root);
+    
+    parser.parse(json, { parent: this.root.container }).then(chart => {
+      // This kicks in when config is parsed
+      (chart as any).series.getIndex(0).appear(1000);
+      (chart as any).appear(1000, 100);
+    });
+
+  }
+
 }

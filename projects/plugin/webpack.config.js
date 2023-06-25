@@ -38,17 +38,17 @@ module.exports = {
       },
 
       shared: share({
+
+        "@angular/platform-browser": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+        "@angular/platform-browser/animations": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
+
         "@angular/core": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
         "@angular/common": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
         "@angular/common/http": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
         "@angular/router": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/cdk": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/material": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/platform-browser": { singleton: true, strictVersion: false, requiredVersion: 'auto' },
-        /*"@angular/material/dialog": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/material/legacy-dialog": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/cdk/portal": { singleton: true, strictVersion: true, requiredVersion: 'auto' },
-        "@angular/cdk/overlay": { singleton: true, strictVersion: true, requiredVersion: 'auto' },*/
+
+        "@angular/cdk": { singleton: true, strictVersion: true, requiredVersion: 'auto', includeSecondaries: true },
+        "@angular/material": { singleton: true, strictVersion: true, requiredVersion: 'auto', includeSecondaries: true },
 
         "@rollthecloudinc/utils": { singleton: true, strictVersion: true, requiredVersion: 'auto', eager: false },
         "@rollthecloudinc/attributes": { singleton: true, strictVersion: true, requiredVersion: 'auto', eager: false },
