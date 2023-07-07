@@ -1,24 +1,25 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
-import { DownloadComponent } from './download.component';
-import { UploadComponent } from './upload.component';
-import { DownloadModule } from './download.module';
+import { JsonChartModule } from './json-chart.module';
+import { SITE_NAME } from '@rollthecloudinc/utils';
 @NgModule({
   imports: [
     BrowserModule,
-    DownloadModule
+    JsonChartModule
   ],
   declarations: [
-    AppComponent,
-    UploadComponent,
+    AppComponent
   ],
   bootstrap: [
       AppComponent
+  ],
+  providers: [
+    { provide: SITE_NAME, useValue: 'amcharts5_plugin' },
   ]
 })
 export class AppModule { 
   constructor() {
-    console.log('plugin app module');
+    console.log('amcharts5 plugin app module');
   }
 }

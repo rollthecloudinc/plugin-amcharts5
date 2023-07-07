@@ -1,12 +1,12 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ContentHandler, ContentBinding, ContentPluginEditorOptions } from '@rollthecloudinc/content';
-import { AttributeValue } from '@rollthecloudinc/attributes';
+import { AttributeSerializerService, AttributeValue } from '@rollthecloudinc/attributes';
 import { Observable, of } from 'rxjs';
+import { JsonChart } from '../models/json-chart.model';
 
 @Injectable()
-export class DownloadContentHandler implements ContentHandler {
-
-  constructor() { }
+export class JsonChartContentHandler implements ContentHandler {
+  private attributeSerializer = inject(AttributeSerializerService);
 
   handleFile(file: File): Observable<Array<AttributeValue>> {
     return of();
@@ -50,6 +50,14 @@ export class DownloadContentHandler implements ContentHandler {
 
   editorOptions(settings: Array<AttributeValue>): Observable<ContentPluginEditorOptions> {
     return of(new ContentPluginEditorOptions({ fullscreen: true }));
+  }
+
+  toObject(settings: Array<AttributeValue>): Observable<JsonChart> {
+    return of(new JsonChart(this.attributeSerializer.deserializeAsObject(settings)));
+  }
+
+  buildSettings(instance: JsonChart ): Array<AttributeValue> {
+    return this.attributeSerializer.serialize(instance, 'root').attributes;
   }
 
 }
