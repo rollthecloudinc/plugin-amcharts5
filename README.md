@@ -4,6 +4,14 @@ https://www.amcharts.com/docs/v5/concepts/serializing/
 
 ## Example
 
+Load AM Charts 5 solid using a module context.
+
+<img width="1440" alt="Screen Shot 2023-07-07 at 1 29 49 AM" src="https://github.com/rollthecloudinc/solid-amcharts5/assets/73197190/a3b02e39-238e-4f1c-85ed-170edcc766a4">
+
+Once AM Charts 5 solid is loaded new AM Charts 5 JSON pane option becomes available.
+
+<img width="1439" alt="Screen Shot 2023-07-07 at 1 30 05 AM" src="https://github.com/rollthecloudinc/solid-amcharts5/assets/73197190/84d0e6e3-eb07-40d8-855b-4d0513d293be">
+
 Create new panel page with source of data for a AM Charts 5 JSON chart.
 
 <img width="1440" alt="Screen Shot 2023-07-07 at 1 23 34 AM" src="https://github.com/rollthecloudinc/solid-amcharts5/assets/73197190/45f25995-cba7-44bf-938c-814e947fdc8f">
