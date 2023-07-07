@@ -56,4 +56,8 @@ export class JsonChartContentHandler implements ContentHandler {
     return of(new JsonChart(this.attributeSerializer.deserializeAsObject(settings)));
   }
 
+  buildSettings(instance: JsonChart ): Array<AttributeValue> {
+    return this.attributeSerializer.serialize(instance, 'root').attributes;
+  }
+
 }

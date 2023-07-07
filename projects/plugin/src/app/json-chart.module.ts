@@ -7,24 +7,29 @@ import { pluginJsonChartContentPluginFactory } from './app.factories';
 import { CommonModule } from '@angular/common';
 import { JsonChartEditorComponent } from './json-chart-editor.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { JsonChartRefComponent } from './json-chart-ref.component';
+import { DatasourceModule } from '@rollthecloudinc/datasource';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MaterialModule
+    MaterialModule,
+    DatasourceModule
   ],
   declarations: [
     JsonChartRenderComponent,
-    JsonChartEditorComponent
+    JsonChartEditorComponent,
+    JsonChartRefComponent
   ],
   providers: [
     JsonChartContentHandler
   ],
   exports: [
     JsonChartRenderComponent,
-    JsonChartEditorComponent
+    JsonChartEditorComponent,
+    JsonChartRefComponent
   ]
 })
 export class JsonChartModule { 

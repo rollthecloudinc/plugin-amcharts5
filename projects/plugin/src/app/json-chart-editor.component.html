@@ -1,7 +1,15 @@
 <form [formGroup]="contentForm" (ngSubmit)="submit()">
   <mat-dialog-content>
     <div class="content-inner">
-      <textarea formControlName="json" [cols]="cols" [rows]="rows"></textarea>
+      <div class="left">
+        <textarea formControlName="json" [cols]="cols" [rows]="rows"></textarea>
+      </div>
+      <div class="right">
+        <div formArrayName="refs">
+          <amcharts5-plugin-json-chart-ref *ngFor="let _ of refs.controls; let i = index" [formControlName]="i" [bindableOptions]="bindableOptions" [ref]="jsonChart?.refs[i]"></amcharts5-plugin-json-chart-ref>
+          <button type="button" (click)="addRef$.next(undefined)">Add Ref</button>
+        </div>
+      </div>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions>

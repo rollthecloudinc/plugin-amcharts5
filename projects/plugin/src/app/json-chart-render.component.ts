@@ -1,4 +1,4 @@
-import { Component, Input, AfterContentInit, ElementRef, inject } from '@angular/core';
+import { Component, Input, AfterContentInit, ElementRef, inject, OnInit } from '@angular/core';
 import { AttributeValue } from '@rollthecloudinc/attributes';
 import { TokenizerService } from '@rollthecloudinc/token';
 import { InlineContext } from '@rollthecloudinc/context';
@@ -10,21 +10,25 @@ import am5themes_Dark from "@amcharts/amcharts5/themes/Dark";
 import * as am5plugins_json from "@amcharts/amcharts5/plugins/json";
 import { JsonChart } from './models/json-chart.model';
 import { JsonChartContentHandler } from './handlers/json-chart-content.handler';
+import { Pane } from '@rollthecloudinc/panels';
+import { RefsResolverService } from './services/refs-resolver.service';
 
 @Component({
     selector: 'amcharts5-plugin-json-chart-render',
     template: ` `,
     styles: [':host { height: 300px; display: block; }'],
     providers: [
-      JsonChartContentHandler
+      JsonChartContentHandler,
+      RefsResolverService
     ]
 })
 
-export class JsonChartRenderComponent implements AfterContentInit {
+export class JsonChartRenderComponent implements OnInit, AfterContentInit {
 
   private hostEl = inject(ElementRef);
   private handler = inject(JsonChartContentHandler);
   private tokenizerService = inject(TokenizerService);
+  private refsResolver = inject(RefsResolverService);
 
   @Input()
   set settings(settings: Array<AttributeValue>) {
@@ -32,7 +36,19 @@ export class JsonChartRenderComponent implements AfterContentInit {
   }
 
   @Input()
-  contexts: Array<InlineContext> = [];
+  set panes(panes: Array<Pane>) {
+    this.panes$.next(panes);
+  }
+
+  @Input()
+  set originPanes(originPanes: Array<Pane>) {
+    this.originPanes$.next(originPanes);
+  }
+
+  @Input()
+  set contexts(contexts: Array<InlineContext>) {
+    this.contexts$.next(contexts);
+  }
 
   @Input()
   tokens: Map<string, any>;
@@ -42,30 +58,45 @@ export class JsonChartRenderComponent implements AfterContentInit {
     this.resolvedContext$.next(resolvedContext);
   }
 
+  private init$ = new Subject();
   private afterContentInit$ = new Subject<void>();
   private settings$ = new BehaviorSubject<Array<AttributeValue>>([]);
   private jsonChart$ = new BehaviorSubject<JsonChart>(undefined);
   private json$ = new BehaviorSubject<{}>({});
   private resolvedContext$ = new BehaviorSubject<any>(undefined);
+  private refs$ = new BehaviorSubject<Map<string, any>>(undefined);
+  readonly contexts$ = new BehaviorSubject<Array<InlineContext>>([]);
+  readonly panes$ = new BehaviorSubject<Array<Pane>>([]);
+  readonly originPanes$ = new BehaviorSubject<Array<Pane>>([]);
   private root: am5.Root;
 
-  readonly settingsSub = combineLatest([
-    this.settings$,
+  readonly jsonChartSub = this.settings$.pipe(
+    switchMap(settings => this.handler.toObject(settings)),
+    filter(jsonChart => !!jsonChart),
+    tap(jsonChart => this.jsonChart$.next(jsonChart))
+  ).subscribe();
+
+  readonly renderSub = combineLatest([
+    this.jsonChart$,
+    this.refs$,
     this.resolvedContext$
   ]).pipe(
-    switchMap(([settings, _]) => this.handler.toObject(settings)),
-    filter(jsonChart => !!jsonChart && jsonChart.json !== undefined && jsonChart.json !== ''),
-    switchMap(jsonChart => this.resolveContexts().pipe(
-      map<Map<string, any>, [JsonChart, Map<string, any> | undefined]>(tokens => [jsonChart, tokens])
+    map(([ jsonChart, refs ]) => ({ jsonChart, refs })),
+    filter(({ jsonChart, refs }) => jsonChart.json !== undefined && jsonChart.json !== '' && !!refs),
+    switchMap(({ jsonChart, refs }) => this.resolveContexts().pipe(
+      map(tokens => ({ jsonChart, tokens, refs }))
     )),
-  ).subscribe(([jsonChart, tokens]) => {
+  ).subscribe(({ jsonChart, tokens, refs }) => {
+    console.log('jsonChart', jsonChart);
+    console.log('tokens', tokens);
+    console.log('refs', refs);
     if(tokens !== undefined) {
       this.tokens = tokens;
     }
-    this.jsonChart$.next(jsonChart);
     // @todo: Probably be a better approach unserialize and rebuild by replacing tokens recursively.
     const jsonString = this.replaceTokens(jsonChart.json);
     const json = JSON.parse(jsonString);
+    json.refs = { ...(json.refs ? json.refs : {}), ...Array.from(refs.keys()).reduce((p, k) => ({ ...p, [k]: refs.get(k) }), {}) };
     this.json$.next(json);
   });
 
@@ -73,6 +104,24 @@ export class JsonChartRenderComponent implements AfterContentInit {
     filter(json => !!json),
     tap(json => this.renderChart({ json }))
   ).subscribe();
+
+  protected readonly refsSub = combineLatest([
+    this.jsonChart$,
+    this.panes$,
+    this.originPanes$,
+    this.contexts$,
+    this.init$
+  ]).pipe(
+    map(([jsonChart, panes, originPanes, contexts]) => ({ jsonChart, metadata: new Map<string, any>([ [ 'panes', [ ...(panes && Array.isArray(panes) ? panes : []), ...(originPanes && Array.isArray(originPanes) ? originPanes : []) ] ], [ 'contexts', contexts ] ]) })),
+    switchMap(({ jsonChart, metadata }) => this.refsResolver.resolveRefs(jsonChart, metadata)),
+    // tap(refs => console.log('my refs are', refs)),
+    tap(refs => this.refs$.next(refs))
+  ).subscribe();
+
+  ngOnInit() {
+    this.init$.next(undefined);
+    this.init$.complete();
+  }
 
   ngAfterContentInit() {
     this.afterContentInit$.next();
