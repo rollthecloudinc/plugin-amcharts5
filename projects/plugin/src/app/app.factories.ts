@@ -1,14 +1,15 @@
 import { ContentPlugin } from '@rollthecloudinc/content';
-import { DownloadComponent } from './download.component';
-import { DownloadContentHandler } from './handlers/download-content.handler';
+import { JsonChartContentHandler } from './handlers/json-chart-content.handler';
+import { JsonChartRenderComponent } from './json-chart-render.component';
+import { JsonChartEditorComponent } from './json-chart-editor.component';
 
-export const pluginDownloadContentPluginFactory  = ({ handler }: { handler: DownloadContentHandler }) => {
+export const pluginJsonChartContentPluginFactory  = ({ handler }: { handler: JsonChartContentHandler }) => {
   return new ContentPlugin<string>({
-    id: 'plugin_download',
-    title: 'Plugin Download',
+    id: 'amcharts5_json_chart',
+    title: 'AMCharts 5 JSON Chart',
     selectionComponent: undefined,
-    editorComponent: undefined,
-    renderComponent: DownloadComponent,
+    editorComponent: JsonChartEditorComponent,
+    renderComponent: JsonChartRenderComponent,
     handler
   } as any);
 };
