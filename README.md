@@ -2,6 +2,8 @@ Adds content type to Quell editor for rendering JSON based Am Charts.
 
 https://www.amcharts.com/docs/v5/concepts/serializing/
 
+## Example
+
 Create new panel page with source of data for a AM Charts 5 JSON chart.
 
 <img width="1440" alt="Screen Shot 2023-07-07 at 1 23 34 AM" src="https://github.com/rollthecloudinc/solid-amcharts5/assets/73197190/45f25995-cba7-44bf-938c-814e947fdc8f">
