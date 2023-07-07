@@ -23,3 +23,7 @@ Create a datasource pane to populate the chart. This is a static data source but
 Create a AM Charts 5 JSON pane. Add JSON of chart and reference to datasource pane used to populate refs dynamically.
 
 <img width="1440" alt="Screen Shot 2023-07-07 at 1 24 15 AM" src="https://github.com/rollthecloudinc/solid-amcharts5/assets/73197190/590e00d2-ecab-40bb-b737-b168ca61bc9b">
+
+More information can be found about Quell datasources in the below wiki.
+
+https://github.com/rollthecloudinc/quell/wiki/Feature-Demo:-Data-Datasource
